@@ -1,0 +1,95 @@
+<form @submit.prevent="generate" class="z-90 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-300 rounded-xl">
+  <label for="OrderNotes" class="sr-only">Prompt</label>
+  
+  <!-- Container for the textarea -->
+  <div class="rounded-xl border border-gray-200 border-b-0 focus:shadow-xl">
+    <textarea
+      id="OrderNotes"
+      x-model="prompt"
+      @keydown.enter="handleEnter($event)"
+      class="w-full resize-none rounded-t-xl px-2 border-none align-top focus:ring-0 focus:outline-none sm:text-sm"
+      rows="4"
+      placeholder="Describe your image..."
+    ></textarea>
+  </div>
+  
+  <!-- Control Section -->
+  <div class="flex items-center gap-2 bg-white p-3 rounded-b-xl border border-t-0 border-gray-200 shadow-xs">
+    <!-- Dropdown for Aspect Ratios -->
+    <span class="inline-flex h-10 w-16 items-center justify-center rounded-full bg-purple-100 px-2.5 py-0.5 text-purple-700">
+      <div class="relative">
+        <button type="button" @click="showDropdown = !showDropdown" class="underline">
+          <span x-text="selectedAspect"></span>
+        </button>
+        <div
+          x-show="showDropdown"
+          @click.away="showDropdown = false"
+          class="absolute z-10 mt-2 w-56 rounded-md border border-gray-100 bg-white shadow-lg"
+        >
+          <ul>
+            <template x-for="aspect in aspectOptions" :key="aspect">
+              <li>
+                <button
+                  type="button"
+                  @click="selectedAspect = aspect; showDropdown = false"
+                  class="w-full text-left px-4 py-2 hover:bg-gray-100"
+                >
+                  <span x-text="aspect"></span>
+                </button>
+              </li>
+            </template>
+          </ul>
+        </div>
+      </div>
+    </span>
+    
+    <!-- Product Quantity -->
+    <div class="flex items-center justify-center">
+      <div x-data="{ previousQuantity: null, direction: null, changing: false }">
+        <div class="inline-flex items-center rounded-full bg-purple-100 text-purple-700">
+          <button
+            type="button"
+            aria-label="Decrease quantity"
+            x-on:click="if(num_outputs > 1) { previousQuantity = num_outputs; changing = true; num_outputs--; direction = 'up'; setTimeout(() => { changing = false }, 100); }"
+            :disabled="num_outputs === 1"
+            class="px-4 py-2 focus:outline-none"
+          >
+            −
+          </button>
+          <div class="relative flex items-center justify-center w-12 h-10 overflow-hidden">
+            <template x-if="changing">
+              <div
+                x-text="previousQuantity"
+                class="absolute inset-0 flex items-center justify-center transition-transform duration-100"
+                :class="{'translate-y-full': direction === 'down', '-translate-y-full': direction === 'up'}"
+              ></div>
+            </template>
+            <div
+              x-text="num_outputs"
+              x-model="num_outputs"
+              class="absolute inset-0 flex items-center justify-center transition-transform duration-100"
+              :class="{'translate-y-full': direction === 'up' && changing, '-translate-y-full': direction === 'down' && changing, 'animate-slide-down': direction === 'down' && changing, 'animate-slide-up': direction === 'up' && changing}"
+            ></div>
+          </div>
+          <button
+            type="button"
+            aria-label="Increase quantity"
+            x-on:click="num_outputs = num_outputs; changing = true; num_outputs++; direction = 'down'; setTimeout(() => { changing = false }, 100);"
+            :disabled="num_outputs === 4"
+            class="px-4 py-2 focus:outline-none"
+          >
+            +
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Submit Button -->
+    <button class="inline-block ml-auto rounded-full -rotate-90 p-3 bg-black text-purple-200 focus:ring-3 focus:outline-hidden" type="submit">
+      <span class="sr-only">Download</span>
+      <svg class="size-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+      </svg>
+    </button>
+  </div>
+</form>

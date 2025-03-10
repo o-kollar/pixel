@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Image Generator</title>
+  <meta name="description" content="Generate an image with our AI tool">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <!-- Custom script (if needed) -->
+  <script type="module" src="./scripts/script.js"></script>
+  
+  <style>
+    .form-container {
+      width: 100%;
+      max-width: 36rem; /* Fixed width for the form container */
+    }
+    
+    .register-field {
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      margin: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      transition: max-height 0.5s ease, opacity 0.3s ease, margin 0.5s ease, padding 0.5s ease;
+    }
+    
+    .register-field.show {
+      max-height: 150px; /* Set a value that's large enough for your content */
+      opacity: 1;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+  <section class="bg-gray-100">
+    <div class="lg:grid lg:min-h-screen lg:grid-cols-12" x-data="authForm()">
+      <!-- Aside Image -->
+      <aside class="relative block h-16 lg:order-last lg:col-span-5 lg:h-full xl:col-span-6">
+        <img alt="Generated tool image" src="./scripts/generated_image.png" class="absolute inset-0 h-full w-full object-cover"/>
+        <p>Some prompt</p>
+      </aside>
+      <!-- Main Content -->
+      <main class="flex items-center justify-center px-8 py-8 sm:px-12 lg:col-span-7 lg:px-16 lg:py-12 xl:col-span-6">
+        <div class="form-container">
+          <!-- Dynamic Heading -->
+          <h1 class="mt-6 text-2xl font-bold text-gray-900 sm:text-3xl md:text-4xl" x-text="mode === 'register' ? 'Sign up to Create' : 'Log in to Create'"></h1>
+          
+          <!-- Dynamic Paragraph -->
+          <p class="mt-4 leading-relaxed text-gray-500" x-text="mode === 'register' ? '' : 'Enter your credentials to access the tool.'"></p>
+          <!-- Unified Form -->
+          <form @submit.prevent="mode === 'register' ? register() : login()" class="mt-8 grid grid-cols-6 gap-6">
+            <!-- Form fields container with fixed width -->
+             
+            <div class="col-span-6 grid grid-cols-6 gap-6">
+              
+              <!-- First Name (Register Only) -->
+              <div class="col-span-6 sm:col-span-3 register-field" :class="{'show': mode === 'register'}">
+<label
+for="FirstName"
+class="relative block overflow-hidden rounded-md border border-gray-200 px-3 pt-3 shadow-xs  bg-gray-50 focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600"
+>
+<input
+  type="text" id="FirstName" name="first_name" x-model="firstName"
+  class="peer h-8 w-full border-none bg-transparent p-0 placeholder-transparent focus:border-transparent focus:ring-0 focus:outline-none sm:text-sm"
+/>
+
+<span
+  class="absolute start-3 top-3 -translate-y-1/2 text-xs text-gray-700 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-sm peer-focus:top-3 peer-focus:text-xs"
+>
+  First Name
+</span>
+</label>
+
+              </div>
+
+
+              
+              <!-- Last Name (Register Only) -->
+              <div class="col-span-6 sm:col-span-3 register-field" :class="{'show': mode === 'register'}">
+<label
+for="LastName"
+class="relative block overflow-hidden rounded-md border border-gray-200 px-3 pt-3  bg-gray-50 shadow-xs focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600"
+>
+<input
+  type="text" id="LastName" name="last_name" x-model="lastName"
+  class="peer h-8 w-full border-none bg-transparent p-0 placeholder-transparent focus:border-transparent focus:ring-0 focus:outline-none sm:text-sm"
+/>
+
+<span
+  class="absolute start-3 top-3 -translate-y-1/2 text-xs text-gray-700 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-sm peer-focus:top-3 peer-focus:text-xs"
+>
+  Last Name
+</span>
+</label>
+
+              </div>
+            </div>
+ <!-- Email -->           
+
+<label
+for="Email"
+class="relative  bg-gray-50 col-span-6 block overflow-hidden rounded-md border border-gray-200 px-3 pt-3 shadow-xs focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600"
+>
+<input
+  type="email" id="Email" name="email" x-model="email"
+  class="peer h-8 w-full border-none bg-transparent p-0 placeholder-transparent focus:border-transparent focus:ring-0 focus:outline-none sm:text-sm"
+/>
+
+<span
+  class="absolute start-3 top-3 -translate-y-1/2 text-xs text-gray-700 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-sm peer-focus:top-3 peer-focus:text-xs"
+>
+  Email
+</span>
+</label>
+
+            <!-- Password (Common) -->
+<label
+for="Password"
+class="relative  bg-gray-50 col-span-6 block overflow-hidden rounded-md border border-gray-200 px-3 pt-3 shadow-xs focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600"
+>
+<input
+  type="password" id="Password" name="password" x-model="password"
+  class="peer h-8 w-full border-none bg-transparent p-0 placeholder-transparent focus:border-transparent focus:ring-0 focus:outline-none sm:text-sm"
+/>
+
+<span
+  class="absolute start-3 top-3 -translate-y-1/2 text-xs text-gray-700 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-sm peer-focus:top-3 peer-focus:text-xs"
+>
+  Password
+</span>
+</label>
+
+            <!-- Password Confirmation (Register Only) -->
+            <div class="col-span-6 register-field" :class="{'show': mode === 'register'}">
+<label
+for="PasswordConfirmation" 
+class="relative col-span-6  bg-gray-50 block overflow-hidden rounded-md border border-gray-200 px-3 pt-3 shadow-xs focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600"
+>
+<input
+  type="password" id="PasswordConfirmation" name="password_confirmation" x-model="passwordConfirmation"
+  class="peer h-8 w-full border-none bg-transparent p-0 placeholder-transparent focus:border-transparent focus:ring-0 focus:outline-none sm:text-sm"
+/>
+
+<span
+  class="absolute start-3 top-3 -translate-y-1/2 text-xs text-gray-700 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-sm peer-focus:top-3 peer-focus:text-xs"
+>
+Password Confirmation
+</span>
+</label>
+            </div>
+            <!-- Terms and Conditions (Register Only) -->
+            <div class="col-span-6 register-field" :class="{'show': mode === 'register'}">
+              <p class="text-sm text-gray-500">
+                By creating an account, you agree to our 
+                <a href="#" class="text-gray-700 underline">terms and conditions</a> and 
+                <a href="#" class="text-gray-700 underline">privacy policy</a>.
+              </p>
+            </div>
+            <!-- Submit Button and Mode Switch Link - Fixed width -->
+            <p class="mt-4 col-span-6 text-sm text-gray-500 sm:mt-0">
+              <span x-text="mode === 'register' ? 'Already have an account?' : 'Don\'t have an account?'"></span>
+              <a href="#" @click.prevent="mode = mode === 'register' ? 'login' : 'register'" class="text-gray-700 underline" x-text="mode === 'register' ? 'Log in' : 'Register'"></a>.
+            </p>
+            <div class="col-span-6 sm:flex sm:items-center sm:gap-4">
+              <button type="submit" class="inline-block shrink-0 rounded-full border border-purple-100 bg-purple-200 px-12 py-3 text-sm font-medium text-purple-600 transition hover:bg-transparent hover:text-purple-600 focus:ring-3 focus:outline-hidden" x-text="mode === 'register' ? 'Create an account' : 'Log in'"></button>
+            </div>
+  
+          </form>
+        </div>
+      </main>
+    </div>
+  </section>
+  <script>
+    function authForm() {
+      return {
+        mode: 'login',
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        passwordConfirmation: '',
+        marketingAccept: false,
+        rememberMe: false,
+        async register() {
+          const fullName = `${this.firstName} ${this.lastName}`.trim();
+          const data = {
+            email: this.email,
+            password: this.password,
+            passwordConfirm: this.passwordConfirmation,
+            name: fullName,
+            marketingAccept: this.marketingAccept,
+          };
+          try {
+            const response = await fetch('/signup', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(data),
+            });
+            const result = await response.json();
+            if (response.ok && result.success) {
+              window.location.href = result.redirectUrl || '/';
+            } else {
+              console.error('Registration error:', result.error);
+              alert(result.error);
+            }
+          } catch (error) {
+            console.error('Registration request failed:', error);
+          }
+        },
+        async login() {
+          const data = {
+            email: this.email,
+            password: this.password,
+            rememberMe: this.rememberMe,
+          };
+          try {
+            const response = await fetch('/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(data),
+            });
+            const result = await response.json();
+            if (response.ok && result.success) {
+              window.location.href = result.redirectUrl || '/';
+            } else {
+              console.error('Login error:', result.error);
+              alert(result.error);
+            }
+          } catch (error) {
+            console.error('Login request failed:', error);
+          }
+        },
+      };
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,205 @@
+<div id="gallery" class="relative overflow-y-auto hide-scrollbar" x-data="{
+  images: [],
+  expandedImageId: null,
+  originalPosition: { x: 0, y: 0, width: 0, height: 0 },
+  galleryRect: {},
+  isLoading: false,
+  imagesLoaded: false,
+  
+  async fetchImages() {
+      this.isLoading = true;
+      this.imagesLoaded = false;
+      try {
+          const response = await fetch('/user-images', {
+              credentials: 'include' // Include cookies for authentication
+          });
+          if (!response.ok) {
+              throw new Error('Failed to fetch images');
+          }
+          const data = await response.json();
+          this.images = data.images;
+          
+          // Set imagesLoaded to true after a short delay to trigger animation
+          setTimeout(() => {
+            this.imagesLoaded = true;
+          }, 100);
+      } catch (error) {
+          console.error('Error fetching images:', error);
+      } finally {
+          this.isLoading = false;
+      }
+  },
+  
+  addImages(newImages) {
+      // Add new images to the beginning of the array
+      this.images = [...newImages, ...this.images];
+      
+      // Set imagesLoaded to false and then true to trigger animation for new images
+      this.imagesLoaded = false;
+      setTimeout(() => {
+        this.imagesLoaded = true;
+      }, 100);
+  },
+  
+  expandImage(imageId, event) {
+      // Store the original position and dimensions
+      const img = event.target;
+      const rect = img.getBoundingClientRect();
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+      
+      // Get the gallery's visible area
+      const galleryEl = document.getElementById('gallery');
+      this.galleryRect = galleryEl.getBoundingClientRect();
+      
+      this.originalPosition = {
+          x: rect.left + scrollLeft,
+          y: rect.top + scrollTop,
+          width: rect.width,
+          height: rect.height
+      };
+      
+      this.expandedImageId = imageId;
+      
+      // Prevent body scrolling when image is expanded
+      document.body.style.overflow = 'hidden';
+  },
+  
+  closeExpanded() {
+      this.expandedImageId = null;
+      
+      // Re-enable body scrolling
+      document.body.style.overflow = '';
+  }
+}" x-init="fetchImages()">
+  <!-- Loading indicator -->
+  <div x-show="isLoading" class="flex justify-center items-center p-8">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+  </div>
+  
+  <!-- Gallery grid -->
+  <div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2.5 p-5">
+      <template x-for="(image, index) in images" :key="image.id">
+          <div 
+              class="relative overflow-hidden rounded-lg transform opacity-0 scale-95 translate-y-4"
+              x-bind:style="imagesLoaded ? `transition: all 0.3s ease-out ${(images.length - 1 - index) * 0.03}s; transform: translateY(0) scale(1); opacity: 1;` : ''"
+          >
+              <img
+                  :src="image.imageUrl"
+                  alt="Generated Image"
+                  class="w-full h-auto rounded-lg shadow cursor-pointer transition-all duration-300 hover:opacity-90"
+                  @click="expandImage(image.id, $event)"
+                  :class="{ 'opacity-0': expandedImageId === image.id }"
+              />
+              <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white text-xs p-1 truncate" x-text="image.prompt || 'No prompt'"></div>
+          </div>
+      </template>
+  </div>
+  
+  <!-- Empty state -->
+  <div x-show="!isLoading && images.length === 0" class="flex flex-col justify-center items-center p-12 text-gray-500">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+    <p>No images generated yet. Create your first image!</p>
+  </div>
+  
+  <!-- Background blur overlay -->
+  <div 
+      x-show="expandedImageId !== null"
+      x-transition:enter="transition ease-out duration-300"
+      x-transition:enter-start="opacity-0"
+      x-transition:enter-end="opacity-100"
+      x-transition:leave="transition ease-in duration-200"
+      x-transition:leave-start="opacity-100"
+      x-transition:leave-end="opacity-0"
+      class="fixed inset-0 z-40 bg-black bg-opacity-70 backdrop-blur-sm"
+      @click="closeExpanded()"
+  ></div>
+  
+  <!-- Expanded image container -->
+  <div 
+      x-show="expandedImageId !== null" 
+      class="fixed z-50 inset-0 flex items-center justify-center pointer-events-none"
+  >
+      <template x-for="image in images" :key="image.id">
+          <div 
+              x-show="expandedImageId === image.id"
+              class="pointer-events-auto"
+          >
+              <img
+                  :src="image.imageUrl"
+                  alt="Expanded Image"
+                  class="object-contain rounded-lg shadow-lg cursor-zoom-out"
+                  x-init="
+                      if (expandedImageId === image.id) {
+                          $el.style.position = 'absolute';
+                          $el.style.transition = 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                          
+                          // Set initial position and size to match the thumbnail
+                          $el.style.top = `${originalPosition.y}px`;
+                          $el.style.left = `${originalPosition.x}px`;
+                          $el.style.width = `${originalPosition.width}px`;
+                          $el.style.height = `${originalPosition.height}px`;
+                          $el.style.objectFit = 'cover';
+                          
+                          // Force reflow
+                          void $el.offsetWidth;
+                          
+                          // Animate to expanded size and centered position
+                          setTimeout(() => {
+                              // Calculate visible area dimensions and position
+                              const visibleArea = {
+                                  top: Math.max(0, galleryRect.top),
+                                  left: Math.max(0, galleryRect.left),
+                                  width: galleryRect.width,
+                                  height: Math.min(window.innerHeight - galleryRect.top, galleryRect.height),
+                                  right: galleryRect.right,
+                                  bottom: Math.min(window.innerHeight, galleryRect.bottom)
+                              };
+                              
+                              // Visible center points
+                              const visibleCenterX = visibleArea.left + (visibleArea.width / 2);
+                              const visibleCenterY = visibleArea.top + (visibleArea.height / 2);
+                              
+                              // Calculate maximum dimensions for the expanded image
+                              const maxWidth = Math.min(visibleArea.width * 0.9, 1200);
+                              const maxHeight = visibleArea.height * 0.8;
+                              
+                              // Calculate aspect ratio
+                              const imgAspect = originalPosition.width / originalPosition.height;
+                              let newWidth, newHeight;
+                              
+                              if (maxWidth / imgAspect <= maxHeight) {
+                                  newWidth = maxWidth;
+                                  newHeight = maxWidth / imgAspect;
+                              } else {
+                                  newHeight = maxHeight;
+                                  newWidth = maxHeight * imgAspect;
+                              }
+                              
+                              // Center position within visible area
+                              const newTop = visibleCenterY - (newHeight / 2);
+                              const newLeft = visibleCenterX - (newWidth / 2);
+                              
+                              $el.style.top = `${newTop}px`;
+                              $el.style.left = `${newLeft}px`;
+                              $el.style.width = `${newWidth}px`;
+                              $el.style.height = `${newHeight}px`;
+                              $el.style.objectFit = 'contain';
+                              $el.style.maxHeight = `${maxHeight}px`;
+                              $el.style.maxWidth = `${maxWidth}px`;
+                          }, 10);
+                      }
+                  "
+                  @click="closeExpanded()"
+              />
+              <div 
+                  x-show="image.prompt" 
+                  class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-70 text-white p-3 rounded-lg max-w-lg text-center"
+                  x-text="image.prompt"
+              ></div>
+          </div>
+      </template>
+  </div>
+</div>
