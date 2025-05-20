@@ -18,7 +18,7 @@ fi
 echo "Activating virtual environment..."
 source venv/bin/activate
 
-export REPLICATE_API_TOKEN="r8_LWnU1qQW53j3ufU2erkSdul6vXzE8qP2P4F49"
+
 
 # Install dependencies
 echo "Installing dependencies..."
